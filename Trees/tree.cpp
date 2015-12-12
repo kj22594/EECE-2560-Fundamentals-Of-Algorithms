@@ -232,7 +232,79 @@ void findSpanningTree(Graph::vertex_descriptor s, Graph &g1, Graph &st)
 	}
 }
 
-void findSpanningForest(Graph &g1, Graph &sf, int &treeIndex)
+void prim(Graph::vertex_descriptor s, Graph &g, Graph &st)
+{
+	map<size_t, size_t> mapForTree;
+	heapV<Graph::vertex_descriptor, Graph> heap; // create a heap, used for priority queue
+	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(g); // gets all vertices
+	for (Graph::vertex_iterator vItr = vItrRange.first; vItr != vItrRange.second; vItr++)
+	{
+		if (*vItr == s)
+		{
+			g[*vItr].weight = 0; // the start vertex will always have a shortest path of 0 to itself
+			g[*vItr].pred = SmallValue;
+			heap.minHeapInsert(*vItr, g); // insert into min heap
+
+		}
+
+		if (*vItr != s)
+		{
+			// Note LargeValue denotes INF, SmallValue denotes Undefined
+			g[*vItr].weight = LargeValue;
+			g[*vItr].pred = SmallValue;
+			heap.minHeapInsert(*vItr, g); // insert into min heap
+		}
+	}
+
+	heap.buildMinHeap(heap.size(), g);
+	while (heap.size() > 0)
+	{
+		Graph::vertex_descriptor u = heap.extractMinHeapMinimum(g); // extract minimum from graph g
+		pair<Graph::adjacency_iterator, Graph::adjacency_iterator> adjRange = adjacent_vertices(u, g);
+
+
+		for (Graph::adjacency_iterator adjItr = adjRange.first; adjItr != adjRange.second; adjItr++)
+		{
+			Graph::vertex_descriptor v = *adjItr; // set v to be a neighbor
+			relax(g, u, v); // relax u & v to make sure the minimum path is set 
+			try
+			{
+				int index = heap.getIndex(v);
+				heap.minHeapDecreaseKey(index, g); // decreases priority in the priority queue
+			}
+			catch (rangeError ex)
+			{
+				continue;
+			}
+		}
+	}
+
+	// Add vertices to the spanning tree
+	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange1 = vertices(g);
+	for (Graph::vertex_iterator vItr1 = vItrRange1.first; vItr1 != vItrRange1.second; vItr1++)
+	{
+		if (g[*vItr1].weight != LargeValue)
+		{
+			mapForTree[*vItr1] = add_vertex(g[*vItr1], st);
+			g[*vItr1].marked = true;
+		}
+	}
+
+	// Add edges to the spanning tree
+	pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange2 = vertices(g);
+	for (Graph::vertex_iterator vItr2 = vItrRange2.first; vItr2 != vItrRange2.second; vItr2++)
+	{
+		if (g[*vItr2].weight != LargeValue && g[*vItr2].pred != SmallValue)
+		{	
+				EdgeProperties newEdge = g[edge(g[*vItr2].pred, *vItr2, g).first];
+				add_edge(mapForTree[*vItr2], mapForTree[g[*vItr2].pred], newEdge, st);
+			
+		}
+	}
+
+}
+
+void msfPrim(Graph &g1, Graph &sf, int &treeIndex)
 {
 	// reset the graph to its original state
 	clearMarked(g1);
@@ -248,7 +320,9 @@ void findSpanningForest(Graph &g1, Graph &sf, int &treeIndex)
 		Graph insertTree;  // this tree will get inserted to the spanning forest
 		g1[s].startVert = true; // sets this as the start point
 		g1[s].marked = true;
-		findSpanningTree(s, g1, insertTree); // find spanning tree, updates insertTree
+		
+		// findSpanningTree(s, g1, insertTree); // find spanning tree, updates insertTree
+		prim(s,g1,insertTree);
 
 		// adding tree into spanning forest
 		pair<Graph::vertex_iterator, Graph::vertex_iterator> vItrRange = vertices(insertTree);

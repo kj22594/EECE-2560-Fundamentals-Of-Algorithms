@@ -69,7 +69,7 @@ int main()
 		Graph sf;
 		int treeIndex;
 
-		findSpanningForest(g, sf, treeIndex);
+		msfPrim(g, sf, treeIndex);
 		cout << sf << endl; // prints graph description
 		system("pause");
 

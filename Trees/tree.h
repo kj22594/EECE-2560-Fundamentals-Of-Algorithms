@@ -55,7 +55,9 @@ void initializeGraph(Graph &g, Graph::vertex_descriptor &start, Graph::vertex_de
 
 // functions for Project 6a
 void findSpanningTree(Graph::vertex_descriptor s, Graph &g1, Graph &st);
-void findSpanningForest(Graph &g1, Graph &sf, int &treeIndex);
+void msfPrim(Graph &g1, Graph &sf, int &treeIndex);
 bool isConnected(Graph &g);
 bool isCyclic(Graph &g, Graph::vertex_descriptor);
 int totalWeight(Graph &sf);
+
+void prim(Graph::vertex_descriptor s, Graph &g, Graph &st);
